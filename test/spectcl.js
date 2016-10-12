@@ -7,6 +7,7 @@ var assert = require('assert')
   , _ = require('lodash')
   , mockSpawn = require('mock-spawn')
   , vm = require('vm')
+  , net = require('net')
 
 // set up the mock spawn object
 var mySpawn = mockSpawn()
@@ -281,6 +282,55 @@ describe('spectcl', function(){
                 done()
             })
             session.spawn('echo hello')
+        })
+    })
+
+    describe('stream', function(){
+        it('should throw an error if spawn is called with a stream established', function(done){
+            var session = new Spectcl()
+            session._stream = 'test'
+            try {
+                session.spawn('echo hello')
+            } catch(e) {
+                assert(e)
+                done()
+            }
+        });
+
+        it('should work with a duplex stream', function(done){
+            var sesion = new Spectcl()
+            var finished = _.after(2,done)
+            var server = net.createServer(function(c){
+                c.on('end', function(){
+                    finished()
+                })
+                // set up a quick echo server with a 10ms delay
+                c.on('data', function(d){
+                    setTimeout(function(){
+                      c.write(d);
+                    }, 10)
+                })
+            })
+            server.on('error', function(err){
+                assert.ifError(err);
+            })
+            server.listen(function(){
+                var client = net.connect({port:server.localPort}, function(){
+                    // connected, start expecting
+                    session.stream(client)
+                    session.expect([
+                        '1', function(match, matched, cb){
+                            cb(null, '1', match, matched)
+                        }
+                    ], function(err, data, match, matched){
+                        assert.equal(err, null, 'unexpected err in final callback')
+                        assert.equal(data, '1', 'final callback was called by function other than expecation handler, data: "'+data+'"')
+                        assert.equal(match, matched, 'expected string equals matched string')
+                        finished()
+                    })
+                    session.send('1\r');
+                })
+            })
         })
     })
 
