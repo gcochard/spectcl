@@ -295,10 +295,10 @@ describe('spectcl', function(){
                 assert(e)
                 done()
             }
-        });
+        })
 
         it('should work with a duplex stream', function(done){
-            var sesion = new Spectcl()
+            var session = new Spectcl()
             var finished = _.after(2,done)
             var server = net.createServer(function(c){
                 c.on('end', function(){
@@ -307,12 +307,12 @@ describe('spectcl', function(){
                 // set up a quick echo server with a 10ms delay
                 c.on('data', function(d){
                     setTimeout(function(){
-                      c.write(d);
+                        c.write(d)
                     }, 10)
                 })
             })
             server.on('error', function(err){
-                assert.ifError(err);
+                assert.ifError(err)
             })
             server.listen(function(){
                 var client = net.connect({port:server.localPort}, function(){
@@ -328,7 +328,7 @@ describe('spectcl', function(){
                         assert.equal(match, matched, 'expected string equals matched string')
                         finished()
                     })
-                    session.send('1\r');
+                    session.send('1\r')
                 })
             })
         })
