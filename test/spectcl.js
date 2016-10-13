@@ -314,8 +314,8 @@ describe('spectcl', function(){
             server.on('error', function(err){
                 assert.ifError(err)
             })
-            server.listen(function(){
-                var client = net.connect({port:server.localPort}, function(){
+            server.listen(9999, function(){
+                var client = net.connect({port:9999}, function(){
                     // connected, start expecting
                     session.stream(client)
                     session.expect([
